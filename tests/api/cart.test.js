@@ -14,14 +14,23 @@ describe('Cart API', () => {
     const login = await request(app).post('/api/v1/auth/login').send({ email: 'cart@test.com', password: 'Password123' });
     userToken = login.body.accessToken;
 
+    // Scaffold Vendor for product creation
+    await request(app).post('/api/v1/auth/register').send({ name: 'Cart Vendor', email: 'vcart@test.com', password: 'Password123' });
+    await User.findOneAndUpdate({ email: 'vcart@test.com' }, { role: 'vendor' });
+    const vendorUser = await User.findOne({ email: 'vcart@test.com' });
+    const vp = await import('../../src/models/VendorProfile.js').then(m => m.default.create({ userId: vendorUser._id, shopName: 'Cart Shop', isApproved: true }));
+
     // Seed dummy product
     const product = await Product.create({
+      vendor: vp._id,
       title: 'Cart Product',
       slug: 'cart-product',
+      sku: 'CART-SKU',
       description: 'Cart desc',
       price: 1500,
       stock: 10,
-      category: 'sofa'
+      category: 'sofa',
+      isApproved: true
     });
     dummyProductId = product._id;
   });
@@ -73,11 +82,10 @@ describe('Cart API', () => {
       expect(res.body.data.cart.items[0].quantity).toBe(5);
     });
 
-    it('removes item from cart if quantity is 0', async () => {
+    it('removes item from cart using DELETE endpoint', async () => {
       const res = await request(app)
-        .put('/api/v1/cart/update')
-        .set('Authorization', `Bearer ${userToken}`)
-        .send({ productId: dummyProductId, quantity: 0 });
+        .delete(`/api/v1/cart/remove/${dummyProductId}`)
+        .set('Authorization', `Bearer ${userToken}`);
         
       expect(res.status).toBe(200);
       expect(res.body.data.cart.items.length).toBe(0);

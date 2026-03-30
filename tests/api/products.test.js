@@ -38,7 +38,9 @@ describe('Products API', () => {
       description: 'A comfortable sofa',
       price: 15000,
       stock: 5,
-      category: 'sofa'
+      sku: 'MOCK-SKU-1',
+      category: 'sofa',
+      isApproved: true
     });
     dummyProductId = product._id;
   });
@@ -49,7 +51,7 @@ describe('Products API', () => {
       const res = await request(app).get('/api/v1/products');
       expect(res.status).toBe(200);
       expect(Array.isArray(res.body.data.products)).toBe(true);
-      expect(res.body.data.pagination).toBeDefined();
+      expect(res.body.data.nextCursor).toBeDefined(); // or null if finished
     });
 
     it('filters by category correctly', async () => {
@@ -66,20 +68,20 @@ describe('Products API', () => {
     });
 
     it('returns product with vendor populated on valid slug', async () => {
-      const res = await request(app).get('/api/v1/products/slug/initial-test-sofa');
+      const res = await request(app).get('/api/v1/products/initial-test-sofa');
       expect(res.status).toBe(200);
       expect(res.body.data.product.vendor).toBeDefined();
     });
 
     it('returns 404 on nonexistent slug', async () => {
-      const res = await request(app).get('/api/v1/products/slug/nonexistent-slug');
+      const res = await request(app).get('/api/v1/products/nonexistent-slug');
       expect(res.status).toBe(404);
     });
   });
 
   // ─── VENDOR PRODUCT MANAGEMENT ────────────────────────────────────────
   describe('POST /api/v1/products', () => {
-    const newProduct = { title: 'New Table', description: 'Table desc', price: 10000, stock: 10, category: 'dining-table' };
+    const newProduct = { title: 'New Table', description: 'Table desc', sku: 'MOCK-SKU-2', price: 10000, stock: 10, category: 'dining-table' };
 
     it('vendor creates product returning 201', async () => {
       const res = await request(app).post('/api/v1/products').set('Authorization', `Bearer ${vendorToken}`).send(newProduct);

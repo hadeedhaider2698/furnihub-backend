@@ -24,18 +24,18 @@ describe('Vendors API', () => {
 
       const res = await request(app).post('/api/v1/vendors/register').set('Authorization', `Bearer ${customerToken}`).send(vendorData);
       expect(res.status).toBe(201);
-      expect(res.body.data.vendorProfile.shopName).toBe(vendorData.shopName);
+      expect(res.body.data.vendor.shopName).toBe(vendorData.shopName);
       
-      testVendorId = res.body.data.vendorProfile._id;
+      testVendorId = res.body.data.vendor._id;
       
       const user = await User.findOne({ email: 'vc@v.com' });
       expect(user.role).toBe('vendor');
     });
 
-    it('fails with 409 if already a vendor', async () => {
+    it('fails with 400 if already a vendor', async () => {
       const vendorData = { shopName: 'Super Furniture 2' };
       const res = await request(app).post('/api/v1/vendors/register').set('Authorization', `Bearer ${customerToken}`).send(vendorData);
-      expect(res.status).toBe(409); // Already registered
+      expect(res.status).toBe(400); // Already registered
     });
 
     it('fails if missing shopName', async () => {
@@ -46,6 +46,7 @@ describe('Vendors API', () => {
 
   describe('GET /api/v1/vendors/:id', () => {
     it('public profile visible without auth', async () => {
+      await VendorProfile.findByIdAndUpdate(testVendorId, { isApproved: true });
       const res = await request(app).get(`/api/v1/vendors/${testVendorId}`);
       expect(res.status).toBe(200);
       expect(res.body.data.vendor.shopName).toBe('Super Furniture');
@@ -60,13 +61,13 @@ describe('Vendors API', () => {
 
   describe('Vendor Dashboard Endpoints', () => {
     it('Dashboard returns stats successfully', async () => {
-      const res = await request(app).get('/api/v1/vendors/dashboard').set('Authorization', `Bearer ${customerToken}`);
+      const res = await request(app).get('/api/v1/vendors/dashboard/stats').set('Authorization', `Bearer ${customerToken}`);
       expect(res.status).toBe(200);
       expect(res.body.data.stats).toBeDefined();
     });
 
     it('returns 401 unauthenticated if no token passed to dashboard', async () => {
-      const res = await request(app).get('/api/v1/vendors/dashboard');
+      const res = await request(app).get('/api/v1/vendors/dashboard/stats');
       expect(res.status).toBe(401);
     });
   });

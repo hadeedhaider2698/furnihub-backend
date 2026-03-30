@@ -67,8 +67,7 @@ describe('Admin API', () => {
         .put(`/api/v1/admin/users/${adminAcc._id}/ban`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ isBanned: true });
-        
-      expect(res.status).toBe(400); // Or 403 depending on implementation specifics
+      expect(res.status).toBe(403);
     });
   });
 });
