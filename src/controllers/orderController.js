@@ -16,7 +16,14 @@ export const createOrder = catchAsync(async (req, res, next) => {
     if (!product || !product.isActive) {
       return next(new AppError(`Product ${item.product} not found or inactive`, 404));
     }
-    if (product.stock < item.quantity) {
+
+    const updatedProduct = await Product.findOneAndUpdate(
+      { _id: item.product, stock: { $gte: item.quantity } },
+      { $inc: { stock: -item.quantity, totalSold: item.quantity } },
+      { new: true }
+    );
+
+    if (!updatedProduct) {
       return next(new AppError(`Insufficient stock for ${product.title}`, 400));
     }
 
@@ -33,11 +40,6 @@ export const createOrder = catchAsync(async (req, res, next) => {
       color: item.color,
       subtotal: itemSubtotal
     });
-
-    // Deduct stock
-    product.stock -= item.quantity;
-    product.totalSold += item.quantity;
-    await product.save();
   }
 
   const deliveryCharge = 50; // Mock fixed delivery charge
