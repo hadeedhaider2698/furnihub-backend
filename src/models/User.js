@@ -7,6 +7,8 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true, select: false },
   role: { type: String, enum: ['customer', 'vendor', 'admin'], default: 'customer' },
   avatar: { type: String },
+  bio: { type: String, maxlength: 160 },
+  website: { type: String },
   phone: { type: String },
   isVerified: { type: Boolean, default: false },
   isActive: { type: Boolean, default: true },
@@ -15,7 +17,8 @@ const userSchema = new mongoose.Schema({
   emailVerificationToken: { type: String },
   passwordResetToken: { type: String },
   passwordResetExpires: { type: Date },
-  lastLogin: { type: Date }
+  lastLogin: { type: Date },
+  following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'VendorProfile' }]
 }, { timestamps: true });
 
 userSchema.pre('save', async function(next) {

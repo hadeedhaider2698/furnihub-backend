@@ -30,6 +30,14 @@ export const getVendorProfile = catchAsync(async (req, res, next) => {
   successResponse(res, 200, 'Vendor profile', { vendor });
 });
 
+export const getVendors = catchAsync(async (req, res, next) => {
+  const vendors = await VendorProfile.find({ isApproved: true })
+    .select('shopName shopLogo description rating totalSales address')
+    .limit(20);
+    
+  successResponse(res, 200, 'Vendors retrieved successfully', { vendors });
+});
+
 export const updateOwnProfile = catchAsync(async (req, res, next) => {
   const vendor = await VendorProfile.findOneAndUpdate(
     { userId: req.user.id },

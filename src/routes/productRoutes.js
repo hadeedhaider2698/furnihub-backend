@@ -8,6 +8,7 @@ import { createProductSchema, updateProductSchema } from '../validations/product
 const router = express.Router();
 
 router.get('/', productController.getProducts);
+router.get('/categories', productController.getCategories);
 router.get('/search', productController.searchProducts);
 router.get('/:slug', productController.getProductBySlug);
 

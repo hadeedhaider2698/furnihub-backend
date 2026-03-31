@@ -19,3 +19,12 @@ export const forgotPasswordSchema = Joi.object({
 export const resetPasswordSchema = Joi.object({
   password: Joi.string().required().min(8)
 });
+
+export const updateMeSchema = Joi.object({
+  name: Joi.string().min(2).max(50),
+  email: Joi.string().email(),
+  bio: Joi.string().max(160).allow(''),
+  website: Joi.string().uri().allow(''),
+  phone: Joi.string().allow(''),
+  avatar: Joi.string().uri().allow('')
+}).min(1); // At least one field must be provided

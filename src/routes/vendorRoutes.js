@@ -6,6 +6,7 @@ import { registerVendorSchema, updateVendorProfileSchema } from '../validations/
 
 const router = express.Router();
 
+router.get('/', vendorController.getVendors);
 router.get('/:id([0-9a-fA-F]{24})', vendorController.getVendorProfile);
 
 // Protected routes

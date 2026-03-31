@@ -37,7 +37,7 @@ app.use(compression());
 // Rate Limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 500,
   message: 'Too many requests from this IP, please try again in an hour.'
 });
 app.use('/api', limiter);

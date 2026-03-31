@@ -37,7 +37,9 @@ export const getProducts = catchAsync(async (req, res, next) => {
   const products = await Product.find(query)
     .sort(sortOption)
     .limit(Number(limit))
-    .populate('vendor', 'shopName shopLogo rating');
+    .populate('vendor', 'shopName shopLogo rating')
+    .select('title slug price discountPrice images vendor rating totalReviews createdAt')
+    .lean();
 
   const nextCursor = products.length === limit ? products[products.length - 1]._id : null;
 
@@ -173,4 +175,9 @@ export const deleteImage = catchAsync(async (req, res, next) => {
   await product.save();
 
   successResponse(res, 200, 'Image deleted successfully', { images: product.images });
+});
+
+export const getCategories = catchAsync(async (req, res, next) => {
+  const categories = await Product.distinct('category', { isActive: true, isApproved: true });
+  successResponse(res, 200, 'Categories retrieved successfully', { categories });
 });

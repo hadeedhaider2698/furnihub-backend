@@ -3,11 +3,11 @@ import Joi from 'joi';
 export const addToCartSchema = Joi.object({
   productId: Joi.string().required(),
   quantity: Joi.number().min(1).default(1),
-  color: Joi.string()
+  color: Joi.string().allow(null, '')
 });
 
 export const updateCartItemSchema = Joi.object({
   productId: Joi.string().required(),
   quantity: Joi.number().min(1).required(),
-  color: Joi.string()
+  color: Joi.string().allow(null, '')
 });

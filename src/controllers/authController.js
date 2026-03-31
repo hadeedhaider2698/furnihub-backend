@@ -191,3 +191,54 @@ export const getMe = catchAsync(async (req, res, next) => {
   const user = await User.findById(req.user.id);
   successResponse(res, 200, 'User profile fetched', { user });
 });
+
+export const updateMe = catchAsync(async (req, res, next) => {
+  // 1) Prevent password updates through this route
+  if (req.body.password) {
+    return next(new AppError('This route is not for password updates. Use /reset-password or /update-password.', 400));
+  }
+
+  // 2) Filtered out unwanted fields names that are not allowed to be updated
+  const filteredBody = {};
+  const allowedFields = ['name', 'email', 'avatar', 'bio', 'website', 'phone'];
+  Object.keys(req.body).forEach(el => {
+    if (allowedFields.includes(el)) filteredBody[el] = req.body[el];
+  });
+
+  // 3) Update user document
+  const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
+    new: true,
+    runValidators: true
+  });
+
+  successResponse(res, 200, 'Profile updated successfully', { user: updatedUser });
+});
+
+export const toggleFollowVendor = catchAsync(async (req, res, next) => {
+  const { vendorId } = req.params;
+  const user = await User.findById(req.user.id);
+
+  const index = user.following.indexOf(vendorId);
+  let followed = false;
+
+  if (index === -1) {
+    user.following.push(vendorId);
+    followed = true;
+  } else {
+    user.following.splice(index, 1);
+    followed = false;
+  }
+
+  await user.save({ validateBeforeSave: false });
+
+  successResponse(res, 200, followed ? 'Vendor followed' : 'Vendor unfollowed', { checked: followed });
+});
+
+export const getFollowing = catchAsync(async (req, res, next) => {
+  const user = await User.findById(req.user.id).populate({
+    path: 'following',
+    select: 'shopName shopLogo description rating address'
+  });
+
+  successResponse(res, 200, 'Following list fetched', { following: user.following });
+});
