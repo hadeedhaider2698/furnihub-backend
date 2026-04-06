@@ -10,6 +10,7 @@ const router = express.Router();
 router.get('/', productController.getProducts);
 router.get('/categories', productController.getCategories);
 router.get('/search', productController.searchProducts);
+router.get('/id/:id', productController.getProductById); // New route for editing
 router.get('/:slug', productController.getProductBySlug);
 
 // Vendor Protected Routes
@@ -17,6 +18,7 @@ router.use(protect, requireRole('vendor'));
 
 router.post('/', validate(createProductSchema), productController.createProduct);
 router.put('/:id', validate(updateProductSchema), productController.updateProduct);
+router.patch('/:id/toggle-status', productController.toggleStatus);
 router.delete('/:id', productController.deleteProduct);
 
 router.post('/:id/images', uploadProductImages, productController.uploadImages);

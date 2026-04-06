@@ -72,6 +72,15 @@ export const getProductBySlug = catchAsync(async (req, res, next) => {
 
   if (!product) return next(new AppError('No product found with that slug', 404));
 
+successResponse(res, 200, 'Product retrieved successfully', { product });
+});
+
+export const getProductById = catchAsync(async (req, res, next) => {
+  const product = await Product.findById(req.params.id)
+    .populate('vendor', 'shopName shopLogo description rating totalReviews');
+
+  if (!product) return next(new AppError('No product found with that ID', 404));
+
   successResponse(res, 200, 'Product retrieved successfully', { product });
 });
 
@@ -82,7 +91,8 @@ export const createProduct = catchAsync(async (req, res, next) => {
 
   const newProduct = await Product.create({
     ...req.body,
-    vendor: vendor._id
+    vendor: vendor._id,
+    isApproved: true // Auto-approve for demo purposes as requested
   });
 
   successResponse(res, 201, 'Product created successfully', { product: newProduct });
@@ -117,6 +127,19 @@ export const deleteProduct = catchAsync(async (req, res, next) => {
   }
 
   successResponse(res, 204, 'Product deleted');
+});
+
+export const toggleStatus = catchAsync(async (req, res, next) => {
+  const vendor = await VendorProfile.findOne({ userId: req.user.id });
+  if (!vendor) return next(new AppError('Unauthorized access', 403));
+
+  const product = await Product.findOne({ _id: req.params.id, vendor: vendor._id });
+  if (!product) return next(new AppError('Product not found', 404));
+
+  product.isActive = !product.isActive;
+  await product.save();
+
+  successResponse(res, 200, 'Product status updated', { isActive: product.isActive });
 });
 
 export const uploadImages = catchAsync(async (req, res, next) => {

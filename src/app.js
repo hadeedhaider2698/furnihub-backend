@@ -24,8 +24,8 @@ app.use(cors({
 app.post('/api/v1/orders/payment/webhook', express.raw({ type: 'application/json' }), stripeWebhook);
 
 // Body parsers
-app.use(express.json({ limit: '10kb' }));
-app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
 // Sanitize data

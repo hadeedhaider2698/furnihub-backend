@@ -7,16 +7,18 @@ import cartRoutes from './cartRoutes.js';
 import wishlistRoutes from './wishlistRoutes.js';
 import reviewRoutes from './reviewRoutes.js';
 import adminRoutes from './adminRoutes.js';
+import uploadRoutes from './uploadRoutes.js';
 
 const router = express.Router();
 
 router.use('/auth', authRoutes);
 router.use('/products', productRoutes);
-router.use('/vendors', vendorRoutes);
+router.use('/vendor', vendorRoutes);
 router.use('/orders', orderRoutes);
 router.use('/cart', cartRoutes);
 router.use('/wishlist', wishlistRoutes);
 router.use('/reviews', reviewRoutes);
 router.use('/admin', adminRoutes);
+router.use('/upload', uploadRoutes);
 
 export default router;

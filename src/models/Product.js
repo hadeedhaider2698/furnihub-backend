@@ -4,7 +4,7 @@ import slugify from 'slugify';
 const productSchema = new mongoose.Schema({
   vendor: { type: mongoose.Schema.Types.ObjectId, ref: 'VendorProfile', required: true },
   title: { type: String, required: true, trim: true },
-  slug: { type: String, unique: true },
+  slug: { type: String, unique: true, sparse: true },
   description: { type: String, required: true },
   shortDescription: { type: String, maxLength: 200 },
   category: { 
@@ -22,7 +22,7 @@ const productSchema = new mongoose.Schema({
   discountPrice: { type: Number },
   currency: { type: String, default: 'USD' },
   stock: { type: Number, required: true, default: 0 },
-  sku: { type: String, unique: true },
+  sku: { type: String, unique: true, sparse: true },
   dimensions: {
     length: Number,
     width: Number,
@@ -53,11 +53,12 @@ const productSchema = new mongoose.Schema({
 productSchema.index({ title: 'text', description: 'text', tags: 'text' });
 productSchema.index({ category: 1, price: 1 });
 productSchema.index({ vendor: 1 });
-productSchema.index({ slug: 1 });
+// Removed redundant slug index
 
 productSchema.pre('save', function(next) {
-  if (this.isModified('title') && !this.slug) {
-    this.slug = slugify(this.title, { lower: true, strict: true }) + '-' + Math.random().toString(36).substr(2, 6);
+  if (this.isModified('title') && (!this.slug || this.slug.trim() === '')) {
+    const baseSlug = slugify(this.title, { lower: true, strict: true }) || 'product';
+    this.slug = baseSlug + '-' + Math.random().toString(36).substr(2, 6);
   }
   next();
 });

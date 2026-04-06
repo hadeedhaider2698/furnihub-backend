@@ -5,7 +5,7 @@ import AppError from '../utils/appError.js';
 import { successResponse } from '../utils/apiResponse.js';
 
 export const getCart = catchAsync(async (req, res, next) => {
-  let cart = await Cart.findOne({ user: req.user.id }).populate('items.product', 'title price discountPrice images vendor stock');
+  let cart = await Cart.findOne({ user: req.user.id }).populate('items.product', 'title price discountPrice images vendor stock slug category');
   
   if (!cart) {
     cart = await Cart.create({ user: req.user.id, items: [] });
@@ -38,7 +38,7 @@ export const addToCart = catchAsync(async (req, res, next) => {
   }
 
   await cart.save();
-  await cart.populate('items.product', 'title price discountPrice images vendor stock');
+  await cart.populate('items.product', 'title price discountPrice images vendor stock slug category');
 
   successResponse(res, 200, 'Added to cart', { cart });
 });
@@ -56,7 +56,7 @@ export const updateCartItem = catchAsync(async (req, res, next) => {
   if (itemIndex > -1) {
     cart.items[itemIndex].quantity = quantity;
     await cart.save();
-    await cart.populate('items.product', 'title price discountPrice images vendor stock');
+    await cart.populate('items.product', 'title price discountPrice images vendor stock slug category');
     successResponse(res, 200, 'Cart updated', { cart });
   } else {
     return next(new AppError('Item not found in cart', 404));
@@ -69,7 +69,7 @@ export const removeCartItem = catchAsync(async (req, res, next) => {
 
   cart.items = cart.items.filter(item => item.product.toString() !== req.params.productId);
   await cart.save();
-  await cart.populate('items.product', 'title price discountPrice images vendor stock');
+  await cart.populate('items.product', 'title price discountPrice images vendor stock slug category');
 
   successResponse(res, 200, 'Item removed from cart', { cart });
 });

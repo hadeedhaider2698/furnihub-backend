@@ -1,12 +1,12 @@
 import express from 'express';
 import * as vendorController from '../controllers/vendorController.js';
 import { validate } from '../middleware/validate.js';
-import { protect, requireRole } from '../middleware/auth.js';
+import { protect, optionalProtect, requireRole } from '../middleware/auth.js';
 import { registerVendorSchema, updateVendorProfileSchema } from '../validations/vendorValidation.js';
 
 const router = express.Router();
 
-router.get('/', vendorController.getVendors);
+router.get('/', optionalProtect, vendorController.getVendors);
 router.get('/:id([0-9a-fA-F]{24})', vendorController.getVendorProfile);
 
 // Protected routes
