@@ -68,7 +68,7 @@ export const searchProducts = catchAsync(async (req, res, next) => {
 
 export const getProductBySlug = catchAsync(async (req, res, next) => {
   const product = await Product.findOne({ slug: req.params.slug })
-    .populate('vendor', 'shopName shopLogo description rating totalReviews');
+    .populate('vendor', 'userId shopName shopLogo description rating totalReviews');
 
   if (!product) return next(new AppError('No product found with that slug', 404));
 
@@ -77,7 +77,7 @@ successResponse(res, 200, 'Product retrieved successfully', { product });
 
 export const getProductById = catchAsync(async (req, res, next) => {
   const product = await Product.findById(req.params.id)
-    .populate('vendor', 'shopName shopLogo description rating totalReviews');
+    .populate('vendor', 'userId shopName shopLogo description rating totalReviews');
 
   if (!product) return next(new AppError('No product found with that ID', 404));
 

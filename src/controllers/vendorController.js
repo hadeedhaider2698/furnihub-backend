@@ -5,6 +5,7 @@ import Order from '../models/Order.js';
 import catchAsync from '../utils/catchAsync.js';
 import AppError from '../utils/appError.js';
 import { successResponse } from '../utils/apiResponse.js';
+import { createNotification } from '../utils/notification.js';
 
 export const registerVendor = catchAsync(async (req, res, next) => {
   const existingVendor = await VendorProfile.findOne({ userId: req.user.id });
@@ -35,6 +36,13 @@ export const getVendorProfile = catchAsync(async (req, res, next) => {
   vendorObj.followersCount = followersCount;
 
   successResponse(res, 200, 'Vendor profile', { vendor: vendorObj });
+});
+
+export const getVendorByUserId = catchAsync(async (req, res, next) => {
+  const vendor = await VendorProfile.findOne({ userId: req.params.userId });
+  if (!vendor) return next(new AppError('Vendor not found', 404));
+
+  successResponse(res, 200, 'Vendor profile', { vendor });
 });
 
 export const getVendors = catchAsync(async (req, res, next) => {
@@ -190,6 +198,16 @@ export const updateOrderStatus = catchAsync(async (req, res, next) => {
   });
 
   await order.save();
+
+  // Notify customer
+  createNotification({
+    recipient: order.customer,
+    sender: req.user.id,
+    type: 'order',
+    title: 'Order Status Updated',
+    message: `Your order #${order.orderNumber} is now ${status}.`,
+    link: `/orders`
+  });
 
   successResponse(res, 200, 'Order status updated', { order });
 });

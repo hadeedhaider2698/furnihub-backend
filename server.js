@@ -17,6 +17,10 @@ const startServer = async () => {
       logger.info(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
     });
 
+    // Initialize Socket.io
+    const { initSocket } = await import('./src/utils/socket.js');
+    initSocket(server);
+
     process.on('unhandledRejection', (err) => {
       logger.error(`Unhandled Rejection: ${err.message}`);
       server.close(() => process.exit(1));

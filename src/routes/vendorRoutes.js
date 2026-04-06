@@ -8,6 +8,7 @@ const router = express.Router();
 
 router.get('/', optionalProtect, vendorController.getVendors);
 router.get('/:id([0-9a-fA-F]{24})', vendorController.getVendorProfile);
+router.get('/user/:userId', vendorController.getVendorByUserId);
 
 // Protected routes
 router.use(protect);

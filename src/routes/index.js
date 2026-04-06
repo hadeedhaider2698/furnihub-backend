@@ -8,6 +8,8 @@ import wishlistRoutes from './wishlistRoutes.js';
 import reviewRoutes from './reviewRoutes.js';
 import adminRoutes from './adminRoutes.js';
 import uploadRoutes from './uploadRoutes.js';
+import chatRoutes from './chatRoutes.js';
+import notificationRoutes from './notificationRoutes.js';
 
 const router = express.Router();
 
@@ -20,5 +22,7 @@ router.use('/wishlist', wishlistRoutes);
 router.use('/reviews', reviewRoutes);
 router.use('/admin', adminRoutes);
 router.use('/upload', uploadRoutes);
+router.use('/chat', chatRoutes);
+router.use('/notifications', notificationRoutes);
 
 export default router;

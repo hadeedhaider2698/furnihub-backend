@@ -3,7 +3,7 @@ import User from '../models/User.js';
 import catchAsync from '../utils/catchAsync.js';
 import AppError from '../utils/appError.js';
 import { generateAccessToken, generateRefreshToken, createRandomToken } from '../utils/generateToken.js';
-import { sendEmail } from '../services/email.js';
+import { sendEmail, sendWelcomeEmail, sendPasswordResetEmail } from '../services/email.js';
 import { successResponse } from '../utils/apiResponse.js';
 import jwt from 'jsonwebtoken';
 
@@ -54,13 +54,24 @@ export const register = catchAsync(async (req, res, next) => {
   });
 
   const verifyUrl = `${process.env.CLIENT_URL}/auth/verify-email/${verificationToken}`;
-  const message = `Welcome to FurniHub! Please verify your email by clicking: ${verifyUrl}`;
+  
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+      <h2 style="color: #8b5a2b;">Verify Your Email</h2>
+      <p>Hi ${name},</p>
+      <p>Welcome to FurniHub! Please verify your email address to get started.</p>
+      <p style="margin-top: 20px;">
+        <a href="${verifyUrl}" style="display: inline-block; padding: 12px 24px; background-color: #8b5a2b; color: #fff; text-decoration: none; border-radius: 6px; font-weight: bold;">Verify Email Address</a>
+      </p>
+      <p style="margin-top: 20px; font-size: 12px; color: #777;">If you did not create an account, please ignore this email.</p>
+    </div>
+  `;
 
   try {
     await sendEmail({
       email: user.email,
       subject: 'FurniHub - Verify Your Email',
-      html: `<p>${message}</p>`
+      html
     });
   } catch (err) {
     user.emailVerificationToken = undefined;
@@ -132,15 +143,9 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
   await user.save({ validateBeforeSave: false });
 
   const resetUrl = `${process.env.CLIENT_URL}/auth/reset-password/${resetToken}`;
-  const message = `Forgot your password? Reset it here: ${resetUrl}<br>If you didn't forget your password, please ignore this email!`;
 
   try {
-    await sendEmail({
-      email: user.email,
-      subject: 'Your password reset token (valid for 10 min)',
-      html: `<p>${message}</p>`
-    });
-
+    await sendPasswordResetEmail(user.email, user.name, resetUrl);
     successResponse(res, 200, 'Token sent to email!');
   } catch (err) {
     user.passwordResetToken = undefined;

@@ -4,6 +4,9 @@ import catchAsync from '../utils/catchAsync.js';
 import AppError from '../utils/appError.js';
 import { successResponse } from '../utils/apiResponse.js';
 import stripe from '../config/stripe.js';
+import { sendOrderConfirmationEmail } from '../services/email.js';
+import User from '../models/User.js';
+import { createNotification } from '../utils/notification.js';
 
 export const createOrder = catchAsync(async (req, res, next) => {
   const { items, shippingAddress, paymentMethod, notes } = req.body;
@@ -60,6 +63,24 @@ export const createOrder = catchAsync(async (req, res, next) => {
   });
 
   successResponse(res, 201, 'Order created successfully', { order });
+
+  // Send email and notifications
+  if (paymentMethod === 'cod') {
+    sendOrderConfirmationEmail(req.user.email, req.user.name, order.orderNumber, order.total);
+    
+    // Notify vendors
+    const vendorIds = [...new Set(processedItems.map(i => i.vendor.toString()))];
+    vendorIds.forEach(vendorId => {
+      createNotification({
+        recipient: vendorId,
+        sender: req.user.id,
+        type: 'order',
+        title: 'New Order Received',
+        message: `You have received a new order #${order.orderNumber}.`,
+        link: `/vendor/orders`
+      });
+    });
+  }
 });
 
 export const getMyOrders = catchAsync(async (req, res, next) => {
@@ -123,6 +144,10 @@ export const createPaymentIntent = catchAsync(async (req, res, next) => {
   if (order.paymentStatus === 'paid') {
     return next(new AppError('Order is already paid', 400));
   }
+  
+  if (order.paymentMethod === 'cod') {
+    return next(new AppError('Payment intent not required for COD order', 400));
+  }
 
   const paymentIntent = await stripe.paymentIntents.create({
     amount: Math.round(order.total * 100), // Stripe expects cents
@@ -154,11 +179,15 @@ export const stripeWebhook = catchAsync(async (req, res, next) => {
     const paymentIntent = event.data.object;
     const orderId = paymentIntent.metadata.orderId;
 
-    await Order.findByIdAndUpdate(orderId, {
+    const order = await Order.findByIdAndUpdate(orderId, {
       paymentStatus: 'paid',
       orderStatus: 'confirmed',
       $push: { statusHistory: { status: 'confirmed', note: 'Payment received via Stripe' } }
-    });
+    }, { new: true }).populate('customer', 'name email');
+
+    if (order) {
+      sendOrderConfirmationEmail(order.customer.email, order.customer.name, order.orderNumber, order.total);
+    }
   }
 
   res.status(200).json({ received: true });
